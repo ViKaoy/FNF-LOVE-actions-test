@@ -30,11 +30,7 @@ function create()
 	tankman:addAnimByPrefix('wellWell', 'TANK TALK 1 P1', 24, false)
 	tankman:addAnimByPrefix('killYou', 'TANK TALK 1 P2', 24, false)
 	tankman:play('wellWell', true)
-	if state.dad then
-		state:insert(state:indexOf(state.dad) + 1, tankman)
-	else
-		state:add(tankman)
-	end
+	state:insert(state:indexOf(state.stage) + 1, tankman)
 
 	state.camFollow:set(dadX + 380, dadY + 170)
 end
