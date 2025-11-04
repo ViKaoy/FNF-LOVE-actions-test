@@ -121,8 +121,14 @@ function PlayState:preload()
 		end
 	end
 
-	for i, rating in ipairs({"perfect", "sick", "good", "bad", "shit"}) do
-		table.insert(list, skinPath("image", rating))
+	self.ratings = {
+		{name = "sick", time = 0.045, score = 350, splash = true,  mod = 1},
+		{name = "good", time = 0.090, score = 200, splash = false, mod = 1},
+		{name = "bad",  time = 0.135, score = 100, splash = false, mod = .5,  resetCombo = true},
+		{name = "shit", time = -1,    score = 50,  splash = false, mod = .25, resetCombo = true}
+	}
+	for _, rating in ipairs(self.ratings) do
+		table.insert(list, skinPath("image", rating.name))
 	end
 	for i = 0, 9 do
 		table.insert(list, skinPath("image", "num" .. i))
@@ -398,13 +404,6 @@ function PlayState:enter()
 	self.combo = 0
 	self.misses = 0
 	self.health = 1
-
-	self.ratings = {
-		{name = "sick", time = 0.045, score = 350, splash = true,  mod = 1},
-		{name = "good", time = 0.090, score = 200, splash = false, mod = 1},
-		{name = "bad",  time = 0.135, score = 100, splash = false, mod = .5,  resetCombo = true},
-		{name = "shit", time = -1,    score = 50,  splash = false, mod = .25, resetCombo = true}
-	}
 	for _, r in ipairs(self.ratings) do
 		self[r.name .. "s"] = 0
 	end
