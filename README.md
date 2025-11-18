@@ -10,10 +10,12 @@
 
 ## Dev Team
 
-- Stilic (owner)
-- Raltyro
-- Victor Kaoy
-- FowluhhDev
+- [Stilic (owner)](https://github.com/Stilic)
+- [Victor Kaoy](https://github.com/ViKaoy)
+- [TehPuertoRicanSpartan](https://github.com/TehPuertoRicanSpartan)
+- [mrmeep64](https://github.com/Arm4GeDon)
+- [Shirobuu](https://github.com/Shirobuuh)
+- [FowluhhDev](https://github.com/skyebleuu)
 
 ## Libraries
 
@@ -21,7 +23,8 @@
 - [classic](https://github.com/rxi/classic)
 - [gamestate](https://github.com/vrld/hump/blob/master/gamestate.lua)\*
 - [json](https://github.com/actboy168/json.lua)\*
-- [lua-discordRPC](https://github.com/pfirsich/lua-discordRPC)
+- [lua-discordRPC](https://github.com/pfirsich/lua-discordRPC)\*
+- [DiscordIPC-Lua](https://github.com/GuglioIsStupid/DiscordIPC-Lua)\*
 - [lua-https](https://github.com/love2d/lua-https)
 - [Lua-Simple-XML-Parser](https://github.com/Cluain/Lua-Simple-XML-Parser)\*
 
