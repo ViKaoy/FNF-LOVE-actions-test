@@ -219,7 +219,7 @@ function Receptor:update(dt)
 					cover.x, cover.y, cover.z = self._x - cover.width / 2 + 2, self._y - cover.height / 2 - 6, self._z
 				end
 				if note.wasGoodSustainHit then
-					if not self.parent.canSpawnSplash or not ClientPrefs.data.noteSplash then
+					if not note.wasFullSustainHit or not self.parent.canSpawnSplash or not ClientPrefs.data.noteSplash then
 						cover:kill()
 					elseif anim ~= "end" then
 						cover:play("end")

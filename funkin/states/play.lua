@@ -937,6 +937,9 @@ function PlayState:update(dt)
 					local noteEnd = note.time + note.sustainTime
 					if noteEnd - sustainOffset <= note.lastPress then
 						local fullHeld = noteEnd <= note.lastPress
+						if fullHeld then
+							note.wasFullSustainHit = true
+						end
 						if fullHeld or not hasInput then
 							self:goodSustainHit(note, time, fullHeld)
 							if hasInput and not isPlayer and char then
