@@ -501,21 +501,21 @@ function Note:__render(camera)
 						if enduv then
 							break
 						else
-							local srcRight = susVerts[vi - 2]
-							local srcLeft  = susVerts[vi - 3]
+							local srcRight                     = susVerts[vi - 2]
+							local srcLeft                      = susVerts[vi - 3]
 
-							local dstRight = susVerts[1]
-							dstRight.x, dstRight.y = srcRight.x, srcRight.y
+							local dstRight                     = susVerts[1]
+							dstRight.x, dstRight.y             = srcRight.x, srcRight.y
 							dstRight.u, dstRight.v, dstRight.w = srcRight.u, uvyh * srcRight.w, srcRight.w
-							dstRight.a = srcRight.a
+							dstRight.a                         = srcRight.a
 
-							uvfh = uvh - fhs
-							vi = 3
+							uvfh                               = uvh - fhs
+							vi                                 = 3
 
-							local dstLeft = susVerts[0]
-							dstLeft.x, dstLeft.y = srcLeft.x, srcLeft.y
-							dstLeft.u, dstLeft.v, dstLeft.w = srcLeft.u, uvyh * srcLeft.w, srcLeft.w
-							dstLeft.a = srcLeft.a
+							local dstLeft                      = susVerts[0]
+							dstLeft.x, dstLeft.y               = srcLeft.x, srcLeft.y
+							dstLeft.u, dstLeft.v, dstLeft.w    = srcLeft.u, uvyh * srcLeft.w, srcLeft.w
+							dstLeft.a                          = srcLeft.a
 						end
 					end
 
