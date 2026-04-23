@@ -202,7 +202,7 @@ local function error_printer(msg, layer)
 end
 
 function funkin.heartbeat()
-	Discord.heartbeat()
+	if Discord then Discord.heartbeat() end
 end
 
 local function rmerge(a, b)
@@ -261,9 +261,11 @@ function funkin.setEnvironment(settings)
 
 	love.graphics.setBackgroundColor(data.window.color[1], data.window.color[2], data.window.color[3])
 
-	Discord.clientID = data.discord.id
-	Discord.options.assets = data.discord.assets
-	Discord.restart()
+	if Discord then
+		Discord.clientID = data.discord.id
+		Discord.options.assets = data.discord.assets
+		Discord.restart()
+	end
 end
 util.setEnvironment = funkin.setEnvironment
 
