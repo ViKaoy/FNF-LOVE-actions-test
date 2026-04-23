@@ -28,11 +28,6 @@ local math_type = math.type or function(v)
 	return "float"
 end
 
-ffi.cdef[[
-	typedef void* locale_t;
-	locale_t newlocale(int category_mask, const char *locale, locale_t base);
-	double strtod_l(const char *nptr, char **endptr, locale_t loc);
-]]
 local end_ptr_ptr = ffi.new("char*[1]")
 
 local json = {}
@@ -275,15 +270,14 @@ local function decode_string()
 	end
 end
 
-local c_locale = ffi.C.newlocale(4, "C", nil)
+local number_chars = "^-?%d+%.?%d*[eE]?[+-]?%d*"
 local function decode_number_fast()
-	local current_ptr = ffi.cast("const char*", buf_ptr + (statusPos - 1))
-	local num = ffi.C.strtod_l(current_ptr, end_ptr_ptr, c_locale)
-	local consumed = ffi.cast("const char*", end_ptr_ptr[0]) - current_ptr
-	if consumed == 0 then decode_error("invalid number at position " .. statusPos) end
+	local slice = ffi.string(buf_ptr + (statusPos - 1), 64)
+	local matched = slice:match(number_chars)
+	if not matched then decode_error("invalid number at position " .. statusPos) end
 
-	statusPos = statusPos + tonumber(consumed)
-	return num
+	statusPos = statusPos + #matched
+	return tonumber(matched)
 end
 
 local function decode_true()
