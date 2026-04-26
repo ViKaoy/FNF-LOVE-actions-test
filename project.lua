@@ -18,7 +18,6 @@ return {
 	company = "Stilic",
 
 	flags = {
-		loxelInitWindow = true,
 		checkForUpdates = false,
 
 		loxelInitialAutoPause = true,
