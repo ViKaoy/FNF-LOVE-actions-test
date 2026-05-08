@@ -25,7 +25,7 @@ function Options:new(showBG, completionCallback)
 	self.prevVal = nil
 	self.dontPlaySound = false
 
-	self.focus = 0
+	self.menuFocus = 0
 
 	self.bg = BackDrop({96, {Color.fromHEX(0x0F0F15), Color.BLACK}})
 	self.bg.moves = true
@@ -257,12 +257,12 @@ function Options:update(dt)
 		if self.tabBG.height ~= self.tabBGHeight then
 			local size = self.selectedTab.data:getSize()
 			local max, bottom, top = self.tabBG.height - game.height + self.taby + size, size * 9, size * 2
-			while selecty - self.focus > bottom and self.focus < max do self.focus = self.focus + size end
-			while selecty - self.focus < top and self.focus > 0 do self.focus = self.focus - size end
-			self.focus = math.clamp(self.focus, 0, max)
+			while selecty - self.menuFocus > bottom and self.menuFocus < max do self.menuFocus = self.menuFocus + size end
+			while selecty - self.menuFocus < top and self.menuFocus > 0 do self.menuFocus = self.menuFocus - size end
+			self.menuFocus = math.clamp(self.menuFocus, 0, max)
 		end
 	else
-		self.focus = 0
+		self.menuFocus = 0
 
 		self.throttles.left.step = 1 / 18
 		self.throttles.right.step = 1 / 18
@@ -275,7 +275,7 @@ function Options:update(dt)
 		end
 	end
 
-	self.tabGroup.y = util.coolLerp(self.tabGroup.y, self.taby - self.focus, 12, dt)
+	self.tabGroup.y = util.coolLerp(self.tabGroup.y, self.taby - self.menuFocus, 12, dt)
 	self.tabBG.y = self.tabGroup.y
 	self.optionsCursor.y = self.tabBG.y + selecty
 end
