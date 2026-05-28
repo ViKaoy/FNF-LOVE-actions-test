@@ -24,7 +24,9 @@ function FreeplayState:enter()
 	self.persistentUpdate = true
 	self.persistentDraw = true
 
-	self.bg = Sprite(0, 0, paths.getImage('menus/menuDesat'))
+	game.camera.bgColor = Color.fromString("#E1E1E1")
+	self.bg = Sprite(0, 0, paths.getImage('menus/menuBG'))
+	self.bg.color = Color.fromString("#8C8C8C")
 	self:add(util.responsiveBG(self.bg))
 
 	self.songs = MenuList(paths.getSound('scrollMenu'), true)
@@ -66,7 +68,7 @@ function FreeplayState:enter()
 		self.songs.curSelected = math.min(#self.songs.members, self.songs.curSelected)
 		self:changeDiff(0)
 		self.songs:changeSelection()
-		self.bg.color = self.songs:getSelected().bgColor
+		self.bg.color = Color.multiply(self.songs:getSelected().bgColor, Color.fromString("#8C8C8C"))
 	end
 
 	FreeplayState.super.enter(self)
@@ -119,7 +121,8 @@ function FreeplayState:update(dt)
 
 	if #self.songs.members > 0 then
 		local colorBG = self.songs:getSelected().bgColor
-		self.bg.color = Color.lerpDelta(self.bg.color, colorBG, 3, dt)
+		game.camera.bgColor = Color.lerpDelta(game.camera.bgColor, Color.multiply(colorBG, Color.fromString("#E1E1E1")), 3, dt)
+		self.bg.color = Color.lerpDelta(self.bg.color, Color.multiply(colorBG, Color.fromString("#8C8C8C")), 3, dt)
 	end
 	FreeplayState.super.update(self, dt)
 

@@ -14,7 +14,9 @@ function ModsState:enter()
 		Discord.changePresence({details = "In the Menus", state = "Mods Menu"})
 	end
 
-	self.bg = Sprite(0, 0, paths.getImage("menus/menuDesat"))
+	game.camera.bgColor = Color.fromString("#E1E1E1")
+	self.bg = Sprite(0, 0, paths.getImage("menus/menuBG"))
+	self.bg.color = Color.fromString("#8C8C8C")
 	self:add(util.responsiveBG(self.bg))
 
 	self.bd = BackDrop(128)
@@ -125,8 +127,9 @@ local colorBlack, colorRed = Color.BLACK, Color.RED
 function ModsState:update(dt)
 	ModsState.super.update(self, dt)
 
-	self.bg.color = Color.lerpDelta(self.bg.color, self.curColor, 3, dt)
-	self.bd.color = Color.saturate(self.bg.color, 0.4)
+	game.camera.bgColor = Color.lerpDelta(game.camera.bgColor, Color.multiply(self.curColor, Color.fromString("#E1E1E1")), 3, dt)
+	self.bg.color = Color.lerpDelta(self.bg.color, Color.multiply(self.curColor, Color.fromString("#8C8C8C")), 3, dt)
+	self.bd.color = Color.lerpDelta(self.bd.color, Color.saturate(self.curColor, 0.4), 3, dt)
 
 	if controls:pressed("back") and not self.leaving then
 		if Mods.currentMod ~= self.initialMod then

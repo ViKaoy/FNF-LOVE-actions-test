@@ -355,11 +355,11 @@ function funkin.throwError(msg)
 	interactTxt = interactTxt .. "\nPress ESC to quit"
 	interactTxt = interactTxt .. "\nPress Ctrl+R to restart"
 
-	local menuDesat, funkinLogo, fnfFont18, fnfFont20
+	local menuBG, funkinLogo, fnfFont18, fnfFont20
 	local bgMusic, missSfx
 
 	function firstPass()
-		menuDesat = paths.getImage("menus/menuDesat")
+		menuBG = paths.getImage("menus/menuBG")
 		funkinLogo = paths.getImage("menus/splashscreen/FNFLOVE_logo")
 		fnfFont18 = paths.getFont("phantommuff.ttf", 18) or love.graphics.setNewFont(18)
 		fnfFont20 = paths.getFont("phantommuff.ttf", 35) or love.graphics.setNewFont(35)
@@ -378,21 +378,23 @@ function funkin.throwError(msg)
 	local dontDraw = false
 	local __error__, __align__, focused = "[ ERROR ]", "left"
 	local scale1, scale2, gameW, gameH, hgameW, hgameH, retval
-	local menuDesatW, menuDesatH, funkinLogoW, funkinLogoH
+	local menuBGW, menuBGH, funkinLogoW, funkinLogoH
 	local function draw(force)
 		if not force and dontDraw then return end
 
-		love.graphics.clear(0, 0, 0)
+		love.graphics.clear(87 / 255, 38 / 255, 65 / 255)
 
 		hgameW, hgameH = gameW / 2, gameH / 2
-		menuDesatW, menuDesatH = menuDesat:getWidth(), menuDesat:getHeight()
+		menuBGW, menuBGH = menuBG:getWidth(), menuBG:getHeight()
 		funkinLogoW, funkinLogoH = funkinLogo:getWidth(), funkinLogo:getHeight()
 
-		scale1 = math.max(gameW / menuDesatW, gameH / menuDesatH)
+		scale1 = math.max(gameW / menuBGW, gameH / menuBGH)
 		scale2 = math.max(math.min(gameW, 1600) / funkinLogoW, math.min(gameH, 900) / funkinLogoH) * 0.525
 
-		love.graphics.setColor(0.2, 0.2, 0.2)
-		love.graphics.draw(menuDesat, hgameW, hgameH, 0, scale1, scale1, menuDesatW / 2, menuDesatH / 2)
+		love.graphics.setColor(23 / 255, 40 / 255, 56 / 255)
+		love.graphics.draw(menuBG, hgameW, hgameH, 0, scale1, scale1, menuBGW / 2, menuBGH / 2)
+
+		love.graphics.setColor(0.4, 0.4, 0.4)
 		love.graphics.draw(funkinLogo, (hgameW * 2) - (scale2 * funkinLogoW / 1.8) - 64, hgameH, 0, scale2, scale2, funkinLogoW / 2, funkinLogoH / 2)
 
 		love.graphics.setColor(1, 1, 1)

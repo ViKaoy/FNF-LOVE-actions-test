@@ -18,7 +18,9 @@ function create()
 	bg.velocity:set(20, 20)
 	add(bg)
 
-	local ground = ActorSprite(270, 460, 300, paths.getImage('menus/menuDesat'))
+	local ground = ActorSprite(270, 460, 300, paths.getImage('menus/menuBG'))
+	ground.color = Color.BLACK
+	ground.alpha = 1 / 3
 	ground:updateHitbox()
 	ground.fov, ground.scale.x, ground.scale.y = 40, 2, 2
 	ground.rotation.x = -90

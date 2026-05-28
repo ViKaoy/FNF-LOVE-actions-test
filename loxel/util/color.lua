@@ -174,6 +174,12 @@ function Color.lerpDelta(x, y, i, delta)
 		1)
 end
 
+function Color.multiply(rgb, rgb2)
+	local r1, g1, b1 = Color.get(rgb)
+	local r2, g2, b2 = Color.get(rgb2)
+	return {r1 * r2, g1 * g2, b1 * b2}
+end
+
 function Color.vec4(tbl, ...)
 	local args = {...}
 	local fill = {tbl.r or tbl[1], tbl.g or tbl[2], tbl.b or tbl[3], tbl.a or tbl[4] or 1}

@@ -22,21 +22,25 @@ function MainMenuState:enter()
 
 	self.menuItems = {'storymode', 'freeplay', 'credits', 'options', 'donate'}
 
+	self.menuColors = {
+		normal = {Color.fromString("#FDE871"), Color.fromString("#DC7828")},
+		flash = {Color.fromString("#FD719B"), Color.fromString("#DC28A7")}
+	}
+
 	game.camera.target = {x = 0, y = 0}
 	self.camFollow = {x = 0, y = 0}
 	game.camera:follow(self.camFollow, nil, 10)
+	game.camera.bgColor = self.menuColors.normal[1]
 
 	local yScroll = math.max(0.25 - (0.05 * (#self.menuItems - 4)), 0.1)
 	self.menuBg = Sprite()
 	self.menuBg:loadTexture(paths.getImage('menus/menuBG'))
+	self.menuBg.color = self.menuColors.normal[2]
 	self.menuBg.scrollFactor:set(0, yScroll)
 	self.menuBg:setGraphicSize(math.floor(self.menuBg.width * 1.175))
 	self.menuBg:updateHitbox()
 	self.menuBg:screenCenter()
 	self:add(self.menuBg)
-
-	self.menuYellow = paths.getImage('menus/menuBG')
-	self.menuMagenta = paths.getImage('menus/menuBGMagenta')
 
 	self.menuList = MenuList(paths.getSound("scrollMenu"), true, "centered", function(self, obj)
 		for _, spr in ipairs(self.members) do
@@ -166,16 +170,21 @@ function MainMenuState:enterSelection(choice)
 
 	util.playSfx(paths.getSound('confirmMenu'))
 	local flicker = Flicker(self.menuBg, switch[1] and 1.1 or 1, 0.15, true)
-	if not flash then self.menuBg:loadTexture(self.menuMagenta) end
+	if not flash then
+		game.camera.bgColor = self.menuColors.flash[1]
+		self.menuBg.color = self.menuColors.flash[2]
+	end
 	local magenta = false
 	flicker.onFlicker = function()
 		if not self.menuBg.exists or not flash then return end
 		magenta = not magenta
-		self.menuBg:loadTexture(magenta and self.menuMagenta or self.menuYellow)
+		game.camera.bgColor = magenta and self.menuColors.flash[1] or self.menuColors.normal[1]
+		self.menuBg.color = magenta and self.menuColors.flash[2] or self.menuColors.normal[2]
 	end
 	flicker.completionCallback = function()
 		if not self.menuBg.exists then return end
-		self.menuBg:loadTexture(self.menuYellow)
+		game.camera.bgColor = self.menuColors.normal[1]
+		self.menuBg.color = self.menuColors.normal[2]
 	end
 
 	local selectedItem = self.menuList.members[self.menuList.curSelected]

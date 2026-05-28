@@ -276,7 +276,9 @@ function CreditsState:enter()
 	game.camera:follow(self.camFollow, nil, 8)
 	game.camera:snapToTarget()
 
-	self.bg = Sprite(0, 0, paths.getImage("menus/menuDesat"))
+	game.camera.bgColor = Color.fromString("#E1E1E1")
+	self.bg = Sprite(0, 0, paths.getImage("menus/menuBG"))
+	self.bg.color = Color.fromString("#8C8C8C")
 	self:add(util.responsiveBG(self.bg))
 
 	self.bd = BackDrop(128)
@@ -306,7 +308,8 @@ function CreditsState:enter()
 	self:changeSelection()
 
 	local colorBG = Color.fromString(self.userList:getSelected().color or "#DF7B29")
-	self.bg.color = colorBG
+	game.camera.bgColor = Color.multiply(colorBG, Color.fromString("#E1E1E1"))
+	self.bg.color = Color.multiply(colorBG, Color.fromString("#8C8C8C"))
 	self.bd.color = Color.saturate(self.bg.color, 0.4)
 
 	self.throttles = {}
@@ -377,8 +380,9 @@ function CreditsState:update(dt)
 	end
 
 	local colorBG = Color.fromString(self.userList:getSelected().color or "#DF7B29")
-	self.bg.color = Color.lerpDelta(self.bg.color, colorBG, 3, dt)
-	self.bd.color = Color.saturate(self.bg.color, 0.4)
+	game.camera.bgColor = Color.lerpDelta(game.camera.bgColor, Color.multiply(colorBG, Color.fromString("#E1E1E1")), 3, dt)
+	self.bg.color = Color.lerpDelta(self.bg.color, Color.multiply(colorBG, Color.fromString("#8C8C8C")), 3, dt)
+	self.bd.color = Color.lerpDelta(self.bd.color, Color.saturate(colorBG, 0.4), 3, dt)
 end
 
 function CreditsState:changeSelection(n)
