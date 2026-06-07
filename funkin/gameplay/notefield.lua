@@ -276,6 +276,10 @@ function Notefield:update(dt)
 
 		table.insert(self.activeNotes, note)
 		self.chartIndex = self.chartIndex + 1
+
+		if self.state.scripts then
+			self.state.scripts:call("noteSpawn", note)
+		end
 	end
 
 	if #self.activeNotes > 1 then
