@@ -1,35 +1,39 @@
 local codename = {name = "Codename"}
 
+local function parseIndices(s)
+	local indices = {}
+
+	for i in s:gmatch("[^,]+") do
+		for r_s, r_e in i:gmatch("(%d+)%.%.(%d+)") do
+			if r_s ~= nil and r_e ~= nil then
+				for j = tonumber(r_s), tonumber(r_e) do
+					table.insert(indices, j)
+				end
+			else
+				table.insert(indices, tonumber(i))
+			end
+		end
+	end
+
+	print(unpack(indices)) -- TODO: remove this line when fully tested
+	return indices
+end
+
 function codename.parse(data, name)
 	local char = Parser.getDummyChar()
 
 	for _, anim in ipairs(data.children) do
 		if anim.name == "anim" then
-			local indices = {}
-			if anim.attrs.indices ~= nil then
-				local temp = anim.attrs.indices:split("..")
-				if #temp >= 2 then
-					for i = tonumber(temp[1]), tonumber(temp[2]) do
-						table.insert(indices, i)
-					end
-				else
-					temp = anim.attrs.indices:split(",")
-					for _, i in ipairs(temp) do
-						table.insert(indices, tonumber(i))
-					end
-				end
-			end
-
-			local a = {
+			local animation = {
 				anim.attrs.name,
 				anim.attrs.anim,
-				indices,
+				anim.attrs.indices ~= nil and parseIndices(anim.attrs.indices) or {},
 				tonumber(anim.attrs.fps),
 				anim.attrs.loop == "true",
 				{tonumber(anim.attrs.x) or 0, tonumber(anim.attrs.y) or 0}
 			}
 
-			table.insert(char.animations, a)
+			table.insert(char.animations, animation)
 		end
 	end
 
