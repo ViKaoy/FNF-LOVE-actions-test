@@ -10,6 +10,10 @@ local Mods = {
 if love.system.getDevice() == "Desktop" and lfs.isFused() and
 	lfs.mount(lfs.getSourceBaseDirectory(), "root") then
 	Mods.root = "root/" .. Mods.root
+elseif love.system.getOS() == "Android" then
+	if lfs.mount("/sdcard/.fnf-love", "external") then
+		Mods.root = "external/mods"
+	end
 end
 
 function Mods.getBanner(name) return ModdingUtil.getBanner(Mods.root, name) end
