@@ -21,7 +21,7 @@ jobs:
 
       - name: clone love-android
         run: |
-          git clone --recurse-submodules --branch 1.0.1 \
+          git clone --recurse-submodules \
             https://github.com/love2d/love-android love-android
 
       - name: set up jdk 17
