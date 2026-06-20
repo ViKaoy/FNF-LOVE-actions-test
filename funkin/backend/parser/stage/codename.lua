@@ -15,7 +15,7 @@ local function parseIndices(s)
 		end
 	end
 
-	print(unpack(indices)) -- TODO: remove this line when fully tested
+	print(unpack(indices)) -- debug print
 	return indices
 end
 
@@ -91,8 +91,8 @@ function codename.parse(data)
             if v.attrs.alpha ~= nil then
                 p.alpha = tonumber(v.attrs.alpha) or 1
             end
-            if v.attrs.scalex ~= nil or v.attrs.scaley ~= nil or v.attrs.scale ~= nil then
-                p.scale = {tonumber(v.attrs.scalex ~= nil and v.attrs.scalex or v.attrs.scale) or 1, tonumber(v.attrs.scaley ~= nil and v.attrs.scaley or v.attrs.scale) or 1}
+            if v.attrs.scale ~= nil then
+                p.scale = tonumber(v.attrs.scale) or 1
             end
         end
         p.zIndex = k
