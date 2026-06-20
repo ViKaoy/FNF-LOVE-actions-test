@@ -15,7 +15,7 @@ local function parseIndices(s)
 		end
 	end
 
-	print(unpack(indices)) -- debug print
+	print(unpack(indices)) -- TODO: remove this line when fully tested
 	return indices
 end
 
