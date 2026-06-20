@@ -7,6 +7,10 @@ local Addons = {all = {}, root = "addons"}
 if love.system.getDevice() == "Desktop" and lfs.isFused() and
 	lfs.mount(lfs.getSourceBaseDirectory(), "root") then
 	Addons.root = "root/" .. Addons.root
+elseif love.system.getOS() == "Android" then
+	if lfs.mount("/sdcard/.fnf-love", "external") or lfs.getInfo("external", "directory") then
+		Addons.root = "external/addons"
+	end
 end
 
 function Addons.getBanner(addon) return ModdingUtil.getBanner(Addons.root, addon.path) end
