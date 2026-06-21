@@ -1,6 +1,8 @@
 local SelectionList = require "funkin.ui.mods.selectionlist"
 local ModsState = State:extend("ModsState")
 
+local AndroidFilePicker = love.system.getOS() == "Android" and require "lib.androidfp" or nil
+
 local info = "Hold Accept to move addons - Press Left/Right to change tabs"
 
 function ModsState:enter()
@@ -112,6 +114,16 @@ function ModsState:enter()
 		self:add(self.buttons)
 	end
 
+	if AndroidFilePicker then
+		self.picker = AndroidFilePicker.new()
+		self.importBtn = Text(game.width - 160, game.height - 44,
+			"[ Import Mod ]", paths.getFont("vcr.ttf", 16), Color.WHITE)
+		self.importBtn.antialiasing = false
+		self.importBtn.outline.width = 1
+		self:add(self.importBtn)
+		self.importBusy = false
+	end
+
 	self:reloadInfo()
 
 	self.descBG.y = self.banner.y + self.banner.height + 10
@@ -156,6 +168,12 @@ function ModsState:update(dt)
 	self.desc.y = self.descBG.y + 20
 
 	if self.leaving or self.inEffect then return end
+
+	if AndroidFilePicker and controls:pressed("extra") and not self.importBusy then
+		self.importBusy = true
+		self.importBtn.color = Color.YELLOW
+		self.picker:openZIP()
+	end
 
 	local color = colorBlack
 	local curSelect = self.curTab:getSelected()
@@ -326,6 +344,33 @@ function ModsState:swapTabs()
 			})
 		end
 	})
+end
+
+function ModsState:filedropped(file)
+	if not AndroidFilePicker then return end
+	local filename = file:getFilename()
+	if not filename:match("pending_mod%.zip$") then return end
+
+	local data = file:read("data")
+	local modName = "imported_" .. tostring(love.timer.getTime()):gsub("%.", "")
+	local zipPath = "mods_zips/" .. modName .. ".zip"
+
+	love.filesystem.createDirectory("mods_zips")
+	love.filesystem.write(zipPath, data)
+
+	local fullPath = love.filesystem.getSaveDirectory() .. "/" .. zipPath
+	if love.filesystem.mount(fullPath, Mods.root .. "/" .. modName) then
+		Mods.reload()
+		self.modsTab:insertContent(Mods.all)
+		self:reloadInfo(false, self.modsTab)
+		util.playSfx(paths.getSound("confirmMenu"))
+	else
+		util.playSfx(paths.getSound("cancelMenu"))
+	end
+
+	love.filesystem.remove("pending_mod.zip")
+	self.importBusy = false
+	self.importBtn.color = Color.WHITE
 end
 
 return ModsState
