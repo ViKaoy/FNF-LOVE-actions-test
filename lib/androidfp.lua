@@ -9,17 +9,19 @@ ffi.cdef[[
         uint8_t z; int8_t b; uint16_t c; int16_t s;
         int32_t i; int64_t j; float f; double d; void* l;
     } jvalue;
-    void* SDL_AndroidGetJNIEnv(void);
-    void* SDL_AndroidGetActivity(void);
+    void* SDL_GetAndroidJNIEnv(void);
+    void* SDL_GetAndroidActivity(void);
 ]]
+
+local sdl = ffi.load("SDL3")
 
 local AndroidFilePicker = {}
 AndroidFilePicker.__index = AndroidFilePicker
 
 function AndroidFilePicker.new()
     local self = setmetatable({}, AndroidFilePicker)
-    self.env= ffi.C.SDL_AndroidGetJNIEnv()
-    self.activity = ffi.C.SDL_AndroidGetActivity()
+    self.env = sdl.SDL_GetAndroidJNIEnv()
+    self.activity = sdl.SDL_GetAndroidActivity()
     local vtable  = ffi.cast("void***", self.env)[0]
     self.FindClass = ffi.cast("jclass  (*)(void*, const char*)", vtable[6])
     self.DeleteLocalRef = ffi.cast("void    (*)(void*, jobject)",  vtable[21])
