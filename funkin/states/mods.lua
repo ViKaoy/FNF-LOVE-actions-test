@@ -111,11 +111,11 @@ function ModsState:enter()
 
 	if love.system.getDevice() == "Mobile" then
 		self.buttons = util.createButtons("lrudab")
+		self.buttons:add(VirtualPad("tab", 0, 0))
 		self:add(self.buttons)
 	end
 
 	if AndroidFilePicker then
-		self.picker = AndroidFilePicker.new()
 		self.importBtn = Text(game.width - 160, game.height - 44,
 			"[ Import Mod ]", paths.getFont("vcr.ttf", 16), Color.WHITE)
 		self.importBtn.antialiasing = false
@@ -169,10 +169,10 @@ function ModsState:update(dt)
 
 	if self.leaving or self.inEffect then return end
 
-	if AndroidFilePicker and controls:pressed("extra") and not self.importBusy then
+	if AndroidFilePicker and controls:pressed("pick_mods") and not self.importBusy then
 		self.importBusy = true
 		self.importBtn.color = Color.YELLOW
-		self.picker:openZIP()
+		AndroidFilePicker.open("zip")
 	end
 
 	local color = colorBlack
