@@ -47,42 +47,50 @@ jobs:
             --exclude='art' \
             game/ "$ASSETS/"
 
-      - name: patch androidmanifest
+      - name: patch gameactivity for file picker callback
         run: |
           python3 - << 'PYEOF'
-          import xml.etree.ElementTree as ET
+          ACTIVITY = "love-android/app/src/main/java/org/love2d/android/GameActivity.java"
+          with open(ACTIVITY, "r") as f:
+              code = f.read()
 
-          MANIFEST = "love-android/app/src/main/AndroidManifest.xml"
-          ET.register_namespace("android", "http://schemas.android.com/apk/res/android")
+          result_code = """
+              @Override
+              protected void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
+                  super.onActivityResult(requestCode, resultCode, data);
+                  if (requestCode == 42 && resultCode == RESULT_OK && data != null) {
+                      android.net.Uri uri = data.getData();
+                      try {
+                          java.io.InputStream in = getContentResolver().openInputStream(uri);
+                          java.io.File outFile = new java.io.File(getExternalFilesDir(null), "save/pending_mod.zip");
+                          outFile.getParentFile().mkdirs();
+                          java.io.FileOutputStream out = new java.io.FileOutputStream(outFile);
+                          byte[] buffer = new byte[1024];
+                          int read;
+                          while ((read = in.read(buffer)) != -1) {
+                              out.write(buffer, 0, read);
+                          }
+                          in.close();
+                          out.flush();
+                          out.close();
+                          final String finalPath = outFile.getAbsolutePath();
+                          runOnUiThread(new Runnable() {
+                              @Override
+                              public void run() {
+                                  org.libsdl.app.SDLActivity.onNativeDropFile(finalPath);
+                              }
+                          });
+                      } catch (Exception e) {
+                          e.printStackTrace();
+                      }
+                  }
+              }
+          """
 
-          tree = ET.parse(MANIFEST)
-          root = tree.getroot()
-          NS = "http://schemas.android.com/apk/res/android"
-
-          existing = {el.get(f"{{{NS}}}name") for el in root.findall("uses-permission")}
-
-          perms = [
-              {"android:name": "android.permission.READ_EXTERNAL_STORAGE",
-               "android:maxSdkVersion": "32"},
-              {"android:name": "android.permission.WRITE_EXTERNAL_STORAGE",
-               "android:maxSdkVersion": "29"},
-              {"android:name": "android.permission.MANAGE_EXTERNAL_STORAGE"},
-          ]
-
-          insert_at = list(root).index(root.find("application"))
-          for i, attrs in enumerate(perms):
-              name = attrs["android:name"]
-              if name not in existing:
-                  el = ET.Element("uses-permission")
-                  for k, v in attrs.items():
-                      el.set(k.replace("android:", f"{{{NS}}}"), v)
-                  root.insert(insert_at + i, el)
-
-          app = root.find("application")
-          app.set(f"{{{NS}}}requestLegacyExternalStorage", "true")
-
-          tree.write(MANIFEST, xml_declaration=True, encoding="utf-8")
-          print("manifest patched ok")
+          code = code[:code.rfind("}")] + result_code + "\n}"
+          with open(ACTIVITY, "w") as f:
+              f.write(code)
+          print("gameactivity patched ok")
           PYEOF
 
       - name: build debug apk
