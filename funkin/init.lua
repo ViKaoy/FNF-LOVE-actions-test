@@ -436,4 +436,6 @@ function funkin.throwError(msg)
 	end
 end
 
+function love.filedropped(f) if game.state and game.state.filedropped then game.state:filedropped(f) end end
+
 return funkin
