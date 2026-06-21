@@ -1,6 +1,8 @@
 local SelectionList = require "funkin.ui.mods.selectionlist"
 local ModsState = State:extend("ModsState")
 
+local AndroidFilePicker = love.system.getOS() == "Android" and require "lib.androidfp" or nil
+
 local info = "Hold Accept to move addons - Press Left/Right to change tabs"
 
 function ModsState:enter()
@@ -10,6 +12,9 @@ function ModsState:enter()
 	Mods.reload()
 
 	self.initialMod = Mods.currentMod
+	if Discord then
+		Discord.changePresence({details = "In the Menus", state = "Mods Menu"})
+	end
 
 	self.bg = Sprite(0, 0, paths.getImage("menus/menuDesat"))
 	self:add(util.responsiveBG(self.bg))
@@ -75,11 +80,8 @@ function ModsState:enter()
 	self.descBG.config.round = {18, 18}
 	self.cardGroup:add(self.descBG)
 
-	local font = paths.getFont("vcr.ttf", 24)
-	font:setFallbacks(paths.getFont("openmoji.ttf", 24))
-	self.desc = Text(20, 0, "", font,
-		Color.WHITE, "left", 806)
-	self.desc.antialiasing = false
+	local font = AtlasText.getFont("default-white", 0.4)
+	self.desc = AtlasText(20, 0, "", font, 806, "left")
 	self.cardGroup:add(self.desc)
 
 	self.versionBox = Graphic(0, 0, 836, 50)
@@ -112,6 +114,16 @@ function ModsState:enter()
 		self:add(self.buttons)
 	end
 
+	if AndroidFilePicker then
+		self.picker = AndroidFilePicker.new()
+		self.importBtn = Text(game.width - 160, game.height - 44,
+			"[ Import Mod ]", paths.getFont("vcr.ttf", 16), Color.WHITE)
+		self.importBtn.antialiasing = false
+		self.importBtn.outline.width = 1
+		self:add(self.importBtn)
+		self.importBusy = false
+	end
+
 	self:reloadInfo()
 
 	self.descBG.y = self.banner.y + self.banner.height + 10
@@ -130,13 +142,14 @@ function ModsState:update(dt)
 
 	if controls:pressed("back") and not self.leaving then
 		if Mods.currentMod ~= self.initialMod then
-			game.save.data.currentMod = Mods.currentMod
+			ClientPrefs.save.data.currentMod = Mods.currentMod
 			local volume = ClientPrefs.data.menuMusicVolume
 			if game.sound.music then game.sound.music:fade(1.5, volume / 100, 0) end
 			TitleState.initialized = false
 			Tween.tween(game.camera, {zoom = 1.15, alpha = 0}, 1.5, {ease = "sineIn", onComplete = function()
 				if game.sound.music then game.sound.music:stop() end
 				Timer.wait(1, function()
+					util.setEnvironment()
 					-- GlobalScripts.reload()
 					ClientPrefs.saveData()
 					game.switchState(TitleState(), true)
@@ -155,6 +168,12 @@ function ModsState:update(dt)
 	self.desc.y = self.descBG.y + 20
 
 	if self.leaving or self.inEffect then return end
+
+	if AndroidFilePicker and controls:pressed("extra") and not self.importBusy then
+		self.importBusy = true
+		self.importBtn.color = Color.YELLOW
+		self.picker:openZIP()
+	end
 
 	local color = colorBlack
 	local curSelect = self.curTab:getSelected()
@@ -278,7 +297,7 @@ function ModsState:reloadInfo(addons, tab)
 	self.banner:setGraphicSize(836)
 	self.banner:updateHitbox()
 
-	self.desc.content = meta.description
+	self.desc.text = meta.description
 
 	local y = self.banner.y + self.banner.height + 10
 	local h = game.height - self.banner.height - 100
@@ -325,6 +344,33 @@ function ModsState:swapTabs()
 			})
 		end
 	})
+end
+
+function ModsState:filedropped(file)
+	if not AndroidFilePicker then return end
+	local filename = file:getFilename()
+	if not filename:match("pending_mod%.zip$") then return end
+
+	local data = file:read("data")
+	local modName = "imported_" .. tostring(love.timer.getTime()):gsub("%.", "")
+	local zipPath = "mods_zips/" .. modName .. ".zip"
+
+	love.filesystem.createDirectory("mods_zips")
+	love.filesystem.write(zipPath, data)
+
+	local fullPath = love.filesystem.getSaveDirectory() .. "/" .. zipPath
+	if love.filesystem.mount(fullPath, Mods.root .. "/" .. modName) then
+		Mods.reload()
+		self.modsTab:insertContent(Mods.all)
+		self:reloadInfo(false, self.modsTab)
+		util.playSfx(paths.getSound("confirmMenu"))
+	else
+		util.playSfx(paths.getSound("cancelMenu"))
+	end
+
+	love.filesystem.remove("pending_mod.zip")
+	self.importBusy = false
+	self.importBtn.color = Color.WHITE
 end
 
 return ModsState
