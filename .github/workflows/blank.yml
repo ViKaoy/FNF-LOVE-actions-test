@@ -19,7 +19,38 @@ jobs:
           ref: 1.0.1
           submodules: recursive
 
+      - name: get love-android head commit
+        id: love-rev
+        run: |
+          HASH=$(git ls-remote https://github.com/love2d/love-android refs/heads/main | cut -f1)
+          echo "hash=${HASH:0:12}" >> $GITHUB_OUTPUT
+
+      - name: cache love-android build
+        id: cache-love
+        uses: actions/cache@v4
+        with:
+          path: love-android
+          key: love-android-${{ steps.love-rev.outputs.hash }}-${{ runner.os }}
+
+      - name: cache gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ steps.love-rev.outputs.hash }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: cache astcenc
+        id: cache-astcenc
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/astcenc
+          key: astcenc-5.4.0
+
       - name: clone love-android
+        if: steps.cache-love.outputs.cache-hit != 'true'
         run: |
           git clone --recurse-submodules \
             https://github.com/love2d/love-android love-android
@@ -37,6 +68,14 @@ jobs:
           ndk-version: r25c
           add-to-path: false
 
+      - name: install astcenc
+        if: steps.cache-astcenc.outputs.cache-hit != 'true'
+        run: |
+          curl -sL https://github.com/ARM-software/astc-encoder/releases/download/5.4.0/astcenc-5.4.0-linux-x64.zip -o astcenc.zip
+          unzip -j astcenc.zip 'bin/astcenc-avx2' -d .
+          chmod +x astcenc-avx2
+          sudo mv astcenc-avx2 /usr/local/bin/astcenc
+
       - name: copy game files into assets
         run: |
           ASSETS=love-android/app/src/main/assets
@@ -46,6 +85,72 @@ jobs:
             --exclude='.github' \
             --exclude='art' \
             game/ "$ASSETS/"
+
+      - name: convert pngs to astc 6x6
+        run: |
+          python3 - << 'PYEOF'
+          import os, subprocess
+
+          ASSETS = "love-android/app/src/main/assets"
+          EXCLUDE_FILE = os.path.join(ASSETS, ".astcexclude")
+
+          excluded = set()
+          if os.path.exists(EXCLUDE_FILE):
+              with open(EXCLUDE_FILE) as f:
+                  excluded = {line.strip() for line in f if line.strip()}
+
+          for root, dirs, files in os.walk(ASSETS):
+              for file in files:
+                  if not file.endswith(".png"):
+                      continue
+                  fullpath = os.path.join(root, file)
+                  relpath = os.path.relpath(fullpath, ASSETS)
+                  if relpath in excluded:
+                      print(f"skipping {relpath}")
+                      continue
+                  outpath = fullpath[:-4] + ".astc"
+                  subprocess.run(["astcenc", "-cl", fullpath, outpath, "6x6", "-medium"], check=True)
+                  os.remove(fullpath)
+                  print(f"converted {relpath}")
+          PYEOF
+
+      - name: patch androidmanifest
+        run: |
+          python3 - << 'PYEOF'
+          import xml.etree.ElementTree as ET
+
+          MANIFEST = "love-android/app/src/main/AndroidManifest.xml"
+          ET.register_namespace("android", "http://schemas.android.com/apk/res/android")
+
+          tree = ET.parse(MANIFEST)
+          root = tree.getroot()
+          NS = "http://schemas.android.com/apk/res/android"
+
+          existing = {el.get(f"{{{NS}}}name") for el in root.findall("uses-permission")}
+
+          perms = [
+              {"android:name": "android.permission.READ_EXTERNAL_STORAGE",
+               "android:maxSdkVersion": "32"},
+              {"android:name": "android.permission.WRITE_EXTERNAL_STORAGE",
+               "android:maxSdkVersion": "29"},
+              {"android:name": "android.permission.MANAGE_EXTERNAL_STORAGE"},
+          ]
+
+          insert_at = list(root).index(root.find("application"))
+          for i, attrs in enumerate(perms):
+              name = attrs["android:name"]
+              if name not in existing:
+                  el = ET.Element("uses-permission")
+                  for k, v in attrs.items():
+                      el.set(k.replace("android:", f"{{{NS}}}"), v)
+                  root.insert(insert_at + i, el)
+
+          app = root.find("application")
+          app.set(f"{{{NS}}}requestLegacyExternalStorage", "true")
+
+          tree.write(MANIFEST, xml_declaration=True, encoding="utf-8")
+          print("manifest patched ok")
+          PYEOF
 
       - name: patch gameactivity for file picker callback
         run: |
@@ -87,10 +192,13 @@ jobs:
               }
           """
 
-          code = code[:code.rfind("}")] + result_code + "\n}"
-          with open(ACTIVITY, "w") as f:
-              f.write(code)
-          print("gameactivity patched ok")
+          if "onActivityResult" not in code:
+              code = code[:code.rfind("}")] + result_code + "\n}"
+              with open(ACTIVITY, "w") as f:
+                  f.write(code)
+              print("gameactivity patched ok")
+          else:
+              print("already patched, skipping")
           PYEOF
 
       - name: build debug apk
